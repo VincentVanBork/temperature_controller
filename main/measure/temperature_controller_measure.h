@@ -13,6 +13,17 @@
     #define DS18B20_RESOLUTION   (DS18B20_RESOLUTION_12_BIT)
     #define SAMPLE_PERIOD        (1000)   // milliseconds
 
-    void measure_using_DS18B20();
+    typedef struct {
+        int num;
+        OneWireBus_ROMCode* rom;
+    } FoundDevices;
+
+    void measure_using_DS18B20(DS18B20_Info* device);
+
+    OneWireBus* initialize_bus();
+    FoundDevices* find_devices(const OneWireBus* owb);
+    void read_devices(const OneWireBus* owb, OneWireBus_ROMCode* rom_code);
+    DS18B20_Info* create_devices(const OneWireBus* owb);
+
 #endif //TEMPERATURE_CONTROLLER_TEMPERATURE_CONTROLLER_MEASURE_H
 

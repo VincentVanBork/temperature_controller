@@ -37,12 +37,18 @@ _Noreturn void app_main()
     // To debug, use 'make menuconfig' to set default Log level to DEBUG, then uncomment:
     //esp_log_level_set("owb", ESP_LOG_DEBUG);
     //esp_log_level_set("ds18b20", ESP_LOG_DEBUG);
-
+    vTaskDelay(5000.0 / portTICK_PERIOD_MS);
+    OneWireBus* owb = initialize_bus();
+    FoundDevices* found_devices = find_devices(owb);
+    read_devices(owb, found_devices->rom);
+    DS18B20_Info* device = create_devices(owb);
+    while(1){
+        TickType_t last_wake_time = xTaskGetTickCount();
+        measure_using_DS18B20(device);
+        vTaskDelayUntil(&last_wake_time, SAMPLE_PERIOD / portTICK_PERIOD_MS);
+        vTaskDelay(5000.0 / portTICK_PERIOD_MS);
+    }
     // Stable readings require a brief period before communication
-    vTaskDelay(2000.0 / portTICK_PERIOD_MS);
-
-    measure_using_DS18B20();
-
 
     printf("Restarting now.\n");
     fflush(stdout);
