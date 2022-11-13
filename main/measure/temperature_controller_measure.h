@@ -11,14 +11,14 @@
     #define GPIO_DS18B20_0       (4)
     #define MAX_DEVICES          (8)
     #define DS18B20_RESOLUTION   (DS18B20_RESOLUTION_12_BIT)
-    #define SAMPLE_PERIOD        (1000)   // milliseconds
+    #define SAMPLE_PERIOD        (2000)   // milliseconds
 
     typedef struct {
         int num;
         OneWireBus_ROMCode* rom;
     } FoundDevices;
 
-    void measure_using_DS18B20(DS18B20_Info* device);
+    float measure_using_DS18B20(DS18B20_Info* device);
 
     OneWireBus* initialize_bus();
     FoundDevices* find_devices(const OneWireBus* owb);

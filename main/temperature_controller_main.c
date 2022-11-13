@@ -28,6 +28,8 @@
 #include "esp_log.h"
 
 #include "measure/temperature_controller_measure.h"
+#include "screen/temperature_controller_screen.h"
+
 
 _Noreturn void app_main()
 {
@@ -37,18 +39,34 @@ _Noreturn void app_main()
     // To debug, use 'make menuconfig' to set default Log level to DEBUG, then uncomment:
     //esp_log_level_set("owb", ESP_LOG_DEBUG);
     //esp_log_level_set("ds18b20", ESP_LOG_DEBUG);
-    vTaskDelay(5000.0 / portTICK_PERIOD_MS);
+
+
+    // Stable readings require a brief period before communication
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
     OneWireBus* owb = initialize_bus();
     FoundDevices* found_devices = find_devices(owb);
     read_devices(owb, found_devices->rom);
     DS18B20_Info* device = create_devices(owb);
+
+    i2c_master_init();
+    ssd1306_init();
+    xTaskCreate(&task_ssd1306_display_clear, "ssd1306_display_clear",  2048, NULL, 6, NULL);
+    vTaskDelay(100/portTICK_PERIOD_MS);
     while(1){
         TickType_t last_wake_time = xTaskGetTickCount();
-        measure_using_DS18B20(device);
-        vTaskDelayUntil(&last_wake_time, SAMPLE_PERIOD / portTICK_PERIOD_MS);
-        vTaskDelay(5000.0 / portTICK_PERIOD_MS);
+        float reading = measure_using_DS18B20(device);
+        char message[48] = {0};
+        char const_message[] = " Temperatura:\n";
+        int j = snprintf(message, 16, "%s", const_message);
+        j += snprintf(message+j, 16, "    %.1f    \n", reading);
+        j += snprintf(message+j, 16, " Czas: \n");
+        snprintf(message+j, 16, "%.1u\n", last_wake_time);
+        xTaskCreate(&task_ssd1306_display_text, "ssd1306_display_text",  2048,
+                    (void *)message, 6, NULL);
+//        xTaskCreate(&task_ssd1306_display_clear, "ssd1306_display_clear",  2048, NULL, 6, NULL);
+//        vTaskDelayUntil(&last_wake_time, SAMPLE_PERIOD / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
-    // Stable readings require a brief period before communication
 
     printf("Restarting now.\n");
     fflush(stdout);

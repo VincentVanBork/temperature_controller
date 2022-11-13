@@ -18,7 +18,7 @@ FoundDevices* find_devices(const OneWireBus* owb){
     printf("Find devices:\n");
     OneWireBus_ROMCode* device_rom_code = malloc(sizeof (OneWireBus_ROMCode));
     OneWireBus_SearchState* search_state = malloc(sizeof (OneWireBus_SearchState ));
-    int num_devices = 0;
+    uint8_t num_devices = 0;
     bool found = false;
     owb_search_first(owb, search_state, &found);
     if(found){
@@ -43,7 +43,7 @@ void read_devices(const OneWireBus* owb, OneWireBus_ROMCode* rom_code){
         {
             char rom_code_s[OWB_ROM_CODE_STRING_LENGTH];
             owb_string_from_rom_code(*(rom_code), rom_code_s, sizeof(rom_code_s));
-            printf("Single device %s present\n", rom_code_s);
+            printf("Read ROM Single device %s present\n", rom_code_s);
         }
     else
     {
@@ -61,12 +61,13 @@ DS18B20_Info* create_devices(const OneWireBus* owb){
      return ds18b20_info;
 };
 
-void measure_using_DS18B20(DS18B20_Info* device){
+float measure_using_DS18B20(DS18B20_Info* device){
     ds18b20_convert(device);
     ds18b20_wait_for_conversion(device);
     float reading;
     DS18B20_ERROR error = ds18b20_read_temp(device, &reading);
     printf("Read temperature %.1f    %d errors\n",  reading, error);
+    return reading;
 //    ds18b20_free(&device);
 //
 //    owb_uninitialize(owb);
